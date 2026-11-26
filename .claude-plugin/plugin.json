@@ -1,0 +1,9 @@
+{
+  "name": "dev-kit",
+  "version": "0.1.0",
+  "description": "Bộ dev dùng chung mọi project: setup rule + ngưỡng độ phức tạp cho repo, verify-gate bắt typecheck/lint/test sạch trước khi xong, đối chiếu spec, quy trình fix bug.",
+  "author": {
+    "name": "Phuc Le"
+  },
+  "keywords": ["workflow", "code-standards", "verify", "spec", "bugfix"]
+}

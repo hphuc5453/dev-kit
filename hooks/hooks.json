@@ -1,0 +1,28 @@
+{
+  "description": "dev-kit verify-gate: ghi baseline lúc mở phiên, chạy lệnh verify của repo trước khi Claude kết thúc lượt nếu có thay đổi code.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-gate.cjs\" baseline",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-gate.cjs\" stop",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  }
+}

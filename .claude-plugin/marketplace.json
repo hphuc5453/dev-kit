@@ -1,0 +1,14 @@
+{
+  "name": "dev-kit",
+  "owner": {
+    "name": "Phuc Le"
+  },
+  "plugins": [
+    {
+      "name": "dev-kit",
+      "source": "./",
+      "description": "Setup rule cho repo, verify-gate, check-spec, fix-bug.",
+      "category": "development"
+    }
+  ]
+}
