@@ -4,6 +4,6 @@
   "private": true,
   "description": "Claude Code plugin: setup, verify-gate, check-spec, fix-bug",
   "scripts": {
-    "test": "node --test tests/verify-gate.test.cjs"
+    "test": "node --test"
   }
 }

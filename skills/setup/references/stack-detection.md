@@ -1,6 +1,7 @@
 # Nhận diện stack & lệnh verify
 
 ## 1. Manifest → stack
+> Đã được tự động hoá trong `scripts/detect-stack.cjs`; giữ lại làm tài liệu và cho trường hợp dò tay.
 
 | File | Stack | Nơi tìm lệnh verify |
 |---|---|---|
@@ -18,6 +19,7 @@
 Luôn kiểm tra thêm CI (`.github/workflows/*`, `.gitlab-ci.yml`, `bitbucket-pipelines.yml`) — CI chạy gì thì đó là "verify chuẩn" của repo.
 
 ## 2. Bộ verify tối thiểu cần có
+> Đã được tự động hoá trong `scripts/detect-stack.cjs`; giữ lại làm tài liệu và cho trường hợp dò tay.
 
 | Loại | Node/TS | Python | Go | Java/Kotlin |
 |---|---|---|---|---|

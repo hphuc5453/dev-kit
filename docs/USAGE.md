@@ -360,4 +360,4 @@ dev-kit chỉ cho phép siết chặt hơn. Với code cũ vi phạm, hãy dùng
 Không trực tiếp. Hãy export ra `.pdf`, `.md` hoặc `.docx` rồi đặt vào repo, hoặc dán nội dung vào lệnh.
 
 **Phát triển dev-kit thì test thế nào?**
-Chạy `npm test` ở thư mục dev-kit (test hook verify-gate bằng `node:test`, không cần cài dependency). Sau khi sửa, chạy `/plugin marketplace update dev-kit` rồi khởi động lại phiên để dùng bản mới.
+Chạy `npm test` ở thư mục dev-kit (test hook verify-gate và script detect-stack bằng `node:test`, không cần cài dependency). Sau khi sửa, chạy `/plugin marketplace update dev-kit` rồi khởi động lại phiên để dùng bản mới.
