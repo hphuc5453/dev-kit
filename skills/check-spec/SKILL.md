@@ -37,7 +37,12 @@ Rồi liệt kê:
 - **Câu hỏi mở**: chỗ spec mâu thuẫn, mơ hồ, thiếu text/số liệu. Không tự bịa câu trả lời.
 - **Phạm vi đề xuất**: in-scope / out-of-scope để tránh làm thừa.
 
-Dừng ở đây, trả cho user danh sách câu hỏi mở để chốt trước khi code.
+Dừng ở đây, trả cho user danh sách câu hỏi mở để chốt trước khi code. Không tự chuyển sang thiết kế hay code.
+
+Khi user đã chốt câu hỏi mở, gợi ý bước tiếp (file spec-check là nguồn đúng cho **yêu cầu**; không hỏi lại phần đã chốt):
+- Một cách làm hợp lý, task nhỏ → làm luôn với TDD.
+- Một cách làm hợp lý, task lớn → `superpowers:writing-plans` với đầu vào là file spec-check.
+- Còn phải chọn cách làm → `superpowers:brainstorming`, chỉ bàn phương án/thiết kế, lấy file spec-check làm nguồn yêu cầu.
 
 ## 4b. Chế độ SAU — chấm từng yêu cầu
 Với **từng** yêu cầu / checklist / AC:
@@ -74,4 +79,4 @@ Thêm:
 ```
 
 ## 6. Trả lời user
-Ngắn: link file, đếm ✅/⚠️/❌/❓ (hoặc số yêu cầu + số câu hỏi mở ở chế độ trước), 3–5 việc quan trọng nhất cần làm tiếp.
+Ngắn: link file, đếm ✅/⚠️/❌/❓ (hoặc số yêu cầu + số câu hỏi mở ở chế độ trước), 3–5 việc quan trọng nhất cần làm tiếp. Chế độ trước: thêm 1 dòng gợi ý skill cho bước tiếp theo (theo mục 4a).

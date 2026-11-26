@@ -11,7 +11,7 @@ CLAUDE.md được nạp ở **mọi** phiên → giữ ≤ ~30 dòng. Chi tiế
 - Ngưỡng độ phức tạp được lint enforce: hàm ≤ 50 dòng, cyclomatic ≤ 10, lồng ≤ 3, tham số ≤ 4, file ≤ 300 dòng. Không dùng disable-comment để lách — tách hàm.
 - Baseline verify, bug đã biết, nợ kỹ thuật: [docs/tech-debt.md](docs/tech-debt.md).
 - Verify trước khi xong việc: `<typecheck>` · `<lint>` · `<test>` — tất cả phải sạch (lint 0 error / 0 warning). Hook dev-kit verify-gate tự chạy các lệnh trong `.claude/verify.json`.
-- Spec/tài liệu yêu cầu nằm ở: `<docs/specs/...>` (dùng `/dev-kit:check-spec`).
+- Spec/tài liệu yêu cầu nằm ở: `<docs/specs/...>` (dùng `/dev-kit:check-spec`). File `*-spec-check.md` đã chốt là nguồn đúng cho yêu cầu: brainstorming/writing-plans đọc nó, không hỏi lại phần đã chốt.
 ```
 
 # Khung `docs/tech-debt.md`

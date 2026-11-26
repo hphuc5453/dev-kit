@@ -2,6 +2,37 @@
 
 Tài liệu cho dev dùng dev-kit trong project hằng ngày. Tổng quan và lệnh cài nhanh: [README](../README.md).
 
+## Bắt đầu nhanh: nên gọi skill nào?
+
+| Tình huống | Gõ | Kết quả |
+|---|---|---|
+| Repo chưa dùng dev-kit (chưa có `.claude/verify.json`) | `/dev-kit:setup` | CLAUDE.md, chuẩn code, lint độ phức tạp, verify-gate |
+| Có spec / ticket / AC, chưa code | `/dev-kit:check-spec trước <spec>` | File spec-check: yêu cầu có ID, edge case, câu hỏi mở |
+| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task nhỏ | `Làm task theo <spec-check>, không cần brainstorm, làm luôn` | Code luôn, có test trước (TDD) |
+| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task lớn | `/superpowers:writing-plans <spec-check>` | Plan chia task ở `docs/superpowers/plans/` |
+| Spec-check đã chốt nhưng **còn phải chọn cách làm** (BE hay FE, có bảng mới không...) | `/superpowers:brainstorming Yêu cầu đã chốt trong <spec-check>, chỉ bàn phương án` | Design doc → tự chuyển sang viết plan |
+| Chưa có spec, chỉ có ý tưởng | `/superpowers:brainstorming <ý tưởng>` | Hỏi đáp → design doc → plan |
+| Đã có plan, các task độc lập nhau | `/superpowers:subagent-driven-development <plan>` | Mỗi task một subagent, review từng task (chất lượng cao, tốn token hơn) |
+| Đã có plan, các task nối tiếp nhau hoặc plan ngắn | `/superpowers:executing-plans <plan>` | Claude làm lần lượt, review một lần ở cuối (rẻ hơn) |
+| Gặp bug | `/dev-kit:fix-bug <mô tả / log>` | Nguyên nhân gốc → duyệt → test hồi quy → sửa |
+| Code xong, có spec | `/dev-kit:check-spec sau <spec>` | Chấm từng yêu cầu ✅/⚠️/❌ |
+| Trước khi tạo PR | `/code-review` → `/commit-commands:commit-push-pr` | Review, commit, push, mở PR |
+
+**Gõ slash command là chắc chắn nhất.** Khi bạn viết câu tự nhiên (vd "làm task này đi"), Claude tự chọn skill theo mô tả của skill, nên kết quả có thể khác ý bạn. Riêng khi đã cài superpowers, câu kiểu "làm feature / làm task" gần như luôn khởi động `brainstorming` trước. Muốn bỏ bước này thì nói rõ *"không cần brainstorm, làm luôn"*.
+
+### check-spec và brainstorming khác nhau thế nào?
+Hai skill bổ sung cho nhau, không thay thế nhau:
+
+| | `/dev-kit:check-spec trước` | `superpowers:brainstorming` |
+|---|---|---|
+| Trả lời câu hỏi | Spec yêu cầu **gì**, chỗ nào thiếu hoặc mâu thuẫn | Làm **thế nào**, chọn phương án nào |
+| Đầu ra | `*-spec-check.md`: nguồn đúng cho **yêu cầu** | `docs/superpowers/specs/*-design.md`: nguồn đúng cho **cách làm** |
+| Sau khi code | Có chế độ `sau` để chấm | Không có |
+
+Thứ tự: check-spec trước → chốt câu hỏi mở với PM → (brainstorming nếu còn phải chọn cách làm) → writing-plans → triển khai → check-spec sau. Khi gọi brainstorming sau check-spec, luôn trỏ tới file spec-check để nó không hỏi lại phần đã chốt.
+
+---
+
 - [1. Cài đặt](#1-cài-đặt)
 - [2. Áp dev-kit cho một repo — `/dev-kit:setup`](#2-áp-dev-kit-cho-một-repo--dev-kitsetup)
 - [3. Đối chiếu spec — `/dev-kit:check-spec`](#3-đối-chiếu-spec--dev-kitcheck-spec)
@@ -121,7 +152,7 @@ Kết quả gồm:
 - **Câu hỏi mở** cần hỏi PM, design hoặc BE. Skill không tự bịa câu trả lời.
 - Phạm vi in-scope / out-of-scope.
 
-→ Chốt hết câu hỏi mở rồi mới bắt đầu code.
+→ Chốt hết câu hỏi mở rồi mới bắt đầu code. Bước tiếp theo tuỳ task, xem bảng [Bắt đầu nhanh](#bắt-đầu-nhanh-nên-gọi-skill-nào): làm luôn, `writing-plans`, hoặc `brainstorming` nếu còn phải chọn cách làm.
 
 ### Chế độ SAU: chấm kết quả sau khi code
 ```
@@ -266,22 +297,32 @@ Task: *"Thêm áp mã giảm giá ở checkout"*, spec ở `docs/specs/checkout.
 ```
 1. /dev-kit:check-spec trước docs/specs/checkout.pdf
    → docs/specs/ap-ma-giam-gia-spec-check.md: 8 yêu cầu, 3 câu hỏi mở
-   → hỏi PM, cập nhật câu trả lời vào spec hoặc file spec-check
+   → hỏi PM, ghi câu trả lời vào file spec-check
 
-2. "Làm task này theo spec-check đã chốt"
-   → superpowers: brainstorm → viết plan → TDD từng bước
+2. Còn phải chọn: tính giá giảm ở BE hay FE?
+   /superpowers:brainstorming Yêu cầu đã chốt trong docs/specs/ap-ma-giam-gia-spec-check.md, chỉ bàn phương án
+   → chọn "tính ở BE" → design doc → bạn duyệt
+   (Nếu chỉ có một cách làm hợp lý: bỏ bước này, gọi thẳng /superpowers:writing-plans <spec-check>)
 
-3. Claude định báo xong → verify-gate chạy
+3. superpowers:writing-plans (brainstorming tự chuyển sang)
+   → docs/superpowers/plans/2026-11-26-ap-ma-giam-gia.md: 5 task
+
+4. /superpowers:subagent-driven-development docs/superpowers/plans/2026-11-26-ap-ma-giam-gia.md
+   → từng task: viết test trước → code → review
+
+5. Claude định báo xong → verify-gate chạy
    → lint fail: hàm applyCoupon 72 dòng > 50 → Claude tự tách hàm → chạy lại, pass
 
-4. /dev-kit:check-spec sau
+6. /dev-kit:check-spec sau docs/specs/checkout.pdf
    → 7 ✅ · 1 ⚠️ (text lỗi lệch spec) → sửa → chạy lại → 8 ✅
 
-5. /code-review
-6. /commit-commands:commit-push-pr
+7. /code-review
+8. /commit-commands:commit-push-pr
 ```
 
-Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>` thay cho bước 2, các bước còn lại giữ nguyên.
+Task nhỏ, chỉ có một cách làm: sau bước 1 gõ `Làm task theo <spec-check>, không cần brainstorm, làm luôn`, rồi nhảy tới bước 5.
+
+Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>` thay cho bước 2–4, các bước còn lại giữ nguyên.
 
 ---
 

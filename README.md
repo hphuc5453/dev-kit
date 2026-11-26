@@ -24,7 +24,9 @@ Repo mới ──► /dev-kit:setup ──► CLAUDE.md · code-standards · tec
 
 Task có spec ──► /dev-kit:check-spec trước ──► chốt câu hỏi mở
                          │
-Task / bug ──────────────┼──► superpowers (brainstorm → plan → TDD)   hoặc   /dev-kit:fix-bug
+Task / bug ──────────────┼──► superpowers: [brainstorm nếu còn phải chọn cách làm] → writing-plans → triển khai (TDD)
+                         │    hoặc /dev-kit:fix-bug cho bug
+                         │    (chọn skill theo tình huống: docs/USAGE.md#bắt-đầu-nhanh-nên-gọi-skill-nào)
                          │
                          ▼
               verify-gate tự chạy khi Claude định dừng: fail → phải sửa tiếp
