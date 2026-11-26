@@ -2,6 +2,8 @@
 
 Bộ dev dùng chung cho mọi project: tuân thủ rule của repo, code đơn giản (ngưỡng độ phức tạp được lint đo + hook ép), đối chiếu spec, fix bug, review, commit/PR.
 
+Hướng dẫn chi tiết (cách gọi từng skill, cấu hình verify-gate, ví dụ end-to-end, xử lý sự cố): **[docs/USAGE.md](docs/USAGE.md)**.
+
 ## Thành phần
 
 | Việc | Thành phần | Nguồn |
