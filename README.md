@@ -68,5 +68,5 @@ Hàm ≤ 50 dòng · cyclomatic ≤ 10 · cognitive ≤ 15 · lồng ≤ 3 · th
 ## Phát triển
 
 ```
-npm test    # test hook verify-gate (node:test, không cần dependency)
+npm test    # chạy mọi *.test.cjs trong tests/: hook verify-gate + script detect-stack (node:test, không cần dependency)
 ```

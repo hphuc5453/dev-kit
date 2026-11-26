@@ -17,10 +17,11 @@ Nguyên tắc:
 ## Quy trình
 
 ### 1. Khảo sát (read-only)
-- Nhận diện stack, package manager, lệnh verify theo `references/stack-detection.md`. CI (`.github/workflows/*`...) chạy gì thì đó là verify chuẩn.
-- Đọc file rule có sẵn: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `docs/*standard*`, `.editorconfig`, config lint/format.
-- Đọc config lint hiện tại, ghi lại rule độ phức tạp đã có.
-- Kiểm tra `.claude/verify.json`, `docs/tech-debt.md` đã có chưa.
+- Chạy `node "<thư mục của skill này>/scripts/detect-stack.cjs" <repo>` (thư mục skill là "Base directory" hiển thị khi skill được nạp) và đọc JSON. **Không tự dò lại** những gì JSON đã có.
+- JSON cho biết: `stacks` (kể cả workspace của monorepo), `packageManager`, `monorepo`, lệnh trong CI (`ci`), `verifyCandidates` (mỗi lệnh kèm `source`: `ci:<file>` / `package.json#scripts.<name>` / `pyproject.toml#tool.<name>` / `default`), `lintConfigs`, `existing` (file rule nào đã có), `warnings`.
+- Tự đọc **nội dung** các file JSON báo là có: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `docs/*standard*`, `.editorconfig`, config lint/format; ghi lại rule độ phức tạp đã có.
+- Chốt lệnh verify: mỗi nhóm lấy mục đầu trong `verifyCandidates` (CI là verify chuẩn của repo). Lệnh từ CI và từ script khác nhau, nguồn chỉ là `default`, hoặc có `warnings` → nêu rõ trong bảng đề xuất ở bước 2.
+- Script lỗi hoặc máy không có Node → dò tay theo `references/stack-detection.md`.
 
 ### 2. Đề xuất (dừng chờ duyệt)
 Trình bày ngắn gọn dạng bảng:
