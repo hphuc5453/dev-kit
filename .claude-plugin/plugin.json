@@ -1,7 +1,7 @@
 {
   "name": "dev-kit",
-  "version": "0.2.0",
-  "description": "Bộ dev dùng chung mọi project: setup rule + ngưỡng độ phức tạp, verify-gate, chốt yêu cầu (check-spec, recheck-spec), brainstorm, write-plan, execute-plan, code-review, commit, create-pr, fix-bug.",
+  "version": "0.3.0",
+  "description": "Bộ dev dùng chung mọi project: setup rule + ngưỡng độ phức tạp, verify-gate, chốt yêu cầu (check-spec, recheck-spec), brainstorm, write-plan, execute-plan, code-review, commit, create-pr, fix-bug, explain-code.",
   "author": {
     "name": "Phuc Le"
   },
