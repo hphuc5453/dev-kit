@@ -49,11 +49,14 @@ Task có spec ──► /dev-kit:check-spec ──► chốt câu hỏi mở
 # 1. Plugin đi kèm (tuỳ chọn)
 /plugin install security-guidance@claude-plugins-official
 
-# 2. dev-kit (từ thư mục local; sau khi push GitHub thì thay bằng <owner>/dev-kit)
-/plugin marketplace add d:/sources/dev-kit
+# 2. dev-kit từ GitHub
+/plugin marketplace add hphuc5453/dev-kit
 /plugin install dev-kit@dev-kit
 ```
 
+Chạy từ terminal (ngoài phiên Claude Code) thì dùng `claude plugin marketplace add hphuc5453/dev-kit` rồi `claude plugin install dev-kit@dev-kit`. Lệnh `install` không nhận URL GitHub trực tiếp, phải thêm marketplace trước. Cài xong thì khởi động lại phiên.
+
+Đang phát triển dev-kit trên máy và muốn dùng bản local: `/plugin marketplace add <đường dẫn tới thư mục dev-kit>` thay cho bước thêm marketplace từ GitHub.
 
 Cập nhật sau khi sửa dev-kit: `/plugin marketplace update dev-kit` rồi khởi động lại phiên.
 
