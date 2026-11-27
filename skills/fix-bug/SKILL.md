@@ -1,6 +1,6 @@
 ---
 name: fix-bug
-description: Quy trình sửa bug cho mọi stack — tái hiện, tìm nguyên nhân gốc (không vá triệu chứng), trình bày cách sửa ngắn gọn và chờ user duyệt, viết test hồi quy fail trước, sửa tối thiểu, verify, ghi lại bug liên quan vào tech-debt. Dùng khi user báo lỗi, dán error/stack trace/log, nói "fix bug", "sửa lỗi", "sao chỗ này sai", "chạy không đúng", "lỗi trên prod/staging". Đây là entry point cho việc sửa bug; kỹ thuật debug có hệ thống (vd superpowers:systematic-debugging) dùng bên trong bước 2 nếu có.
+description: Quy trình sửa bug cho mọi stack — tái hiện, tìm nguyên nhân gốc (không vá triệu chứng), trình bày cách sửa ngắn gọn và chờ user duyệt, viết test hồi quy fail trước, sửa tối thiểu, verify, ghi lại bug liên quan vào tech-debt. Dùng khi user báo lỗi, dán error/stack trace/log, nói "fix bug", "sửa lỗi", "sao chỗ này sai", "chạy không đúng", "lỗi trên prod/staging". Bước 2 (tìm nguyên nhân gốc) cũng là kỹ thuật debug mà các skill khác dùng khi gặp lỗi khó.
 argument-hint: "<mô tả bug / error / stack trace / bước tái hiện>"
 ---
 
@@ -19,10 +19,19 @@ Nguyên tắc:
 - Không tái hiện được → nói rõ, đưa giả thuyết có xếp hạng + cách kiểm chứng; không sửa mù.
 
 ## 2. Tìm nguyên nhân gốc
-- Lần từ triệu chứng ngược về nguồn: stack trace → hàm → dữ liệu đầu vào → nơi dữ liệu được tạo.
-- Kiểm chứng giả thuyết bằng bằng chứng (log, test, query, `git bisect` nếu là regression), không chỉ bằng đọc code.
+**Chưa tìm ra nguyên nhân gốc thì chưa đề xuất cách sửa.**
+
+- **Đọc kỹ lỗi**: đọc hết stack trace, warning, mã lỗi, số dòng; thông báo lỗi thường đã chỉ thẳng nguyên nhân.
+- **Xem thay đổi gần đây**: `git log` / `git diff` trên vùng liên quan, dependency hoặc config mới, khác biệt môi trường. Là regression và có mốc chạy đúng → `git bisect`.
+- **Lần ngược theo call stack**: lỗi hiện ra ở đâu → hàm nào gọi với giá trị sai → giá trị đó từ đâu tới → tiếp tục lên tới **nơi giá trị sai xuất hiện lần đầu**. Sửa ở đó, không sửa ở chỗ lỗi hiện ra.
+- **Hệ thống nhiều tầng** (client → API → service → DB, CI → build → deploy): thêm log/instrument tạm tại **ranh giới mỗi tầng** (dữ liệu vào, dữ liệu ra, env/config có truyền xuống không), chạy một lần để biết **tầng nào** hỏng, rồi mới đào sâu tầng đó.
+- **So với chỗ chạy đúng**: tìm code tương tự trong repo đang chạy đúng, liệt kê mọi khác biệt, kể cả khác biệt "chắc không ảnh hưởng".
+- **Mỗi lần một giả thuyết**: viết ra "nguyên nhân là X vì Y", kiểm bằng thay đổi nhỏ nhất, mỗi lần đổi một biến. Sai → bỏ thay đổi thử đó, lập giả thuyết mới; không chồng thêm sửa đổi lên.
+- **Kiểm chứng bằng bằng chứng** (log, test, query, output), không chỉ bằng đọc code. Không hiểu một điểm → nói thẳng "chưa hiểu X", không giả vờ.
+- **3 lần thử thất bại → dừng**: mỗi lần sửa lại lộ ra vấn đề mới ở chỗ khác, hoặc cần sửa rất rộng → nhiều khả năng là vấn đề kiến trúc. Báo user những gì đã thử và thấy, bàn hướng trước khi thử lần 4.
 - Hỏi: **cùng nguyên nhân này còn gây lỗi ở đâu khác?** (Grep pattern tương tự).
 - Phân biệt: lỗi logic · dữ liệu hỏng có sẵn · cấu hình/env · race condition · tích hợp bên thứ 3 · hiểu sai yêu cầu.
+- Gỡ log/instrument tạm khi đã tìm ra nguyên nhân.
 
 ## 3. Đề xuất (dừng chờ duyệt)
 Trình bày ngắn:
@@ -54,4 +63,4 @@ Ngắn gọn cho user:
 - Nguyên nhân gốc (file:line) · thay đổi (link file) · test đã thêm · kết quả verify.
 - Việc user cần làm thêm (chạy script cleanup, deploy, kiểm tra tay).
 - Cập nhật `docs/tech-debt.md`: bug liên quan chưa sửa, nợ kỹ thuật phát hiện được.
-- Gợi ý bước tiếp: `/code-review` rồi `/commit-commands:commit` (hoặc `commit-push-pr`).
+- Gợi ý bước tiếp: `dev-kit:code-review`, rồi `dev-kit:commit` (chỉ commit) hoặc `dev-kit:create-pr` (commit + push + PR).

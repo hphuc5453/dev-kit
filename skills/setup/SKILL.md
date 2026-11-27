@@ -12,7 +12,7 @@ Nguyên tắc:
 - **Không ghi đè** file của user. File đã có → đề xuất phần bổ sung (diff ngắn), chờ đồng ý.
 - **Quy ước đang có trong repo thắng** mặc định của dev-kit, trừ ngưỡng độ phức tạp (chỉ được siết chặt hơn).
 - Thêm dependency (vd `eslint-plugin-sonarjs`) → hỏi trước.
-- Không commit. Xong thì báo user tự review rồi commit (hoặc dùng `/commit-commands:commit`).
+- Không commit. Xong thì báo user tự review rồi commit (hoặc dùng `/dev-kit:commit`).
 
 ## Quy trình
 
@@ -53,5 +53,6 @@ Thiếu lệnh typecheck/lint/test → nêu ra và đề xuất cách thêm; kh�
 ### 4. Verify & báo cáo
 - Chạy lần lượt từng lệnh trong verify.json; tất cả phải pass (trừ phần đã loại trừ ở baseline).
 - Báo user: file đã tạo/sửa (link), số vi phạm baseline, lệnh verify, và nhắc:
-  - Plugin đi kèm khuyến nghị (nếu chưa cài): `superpowers`, `commit-commands`, `security-guidance` từ `claude-plugins-official`.
+  - Plugin đi kèm khuyến nghị (nếu chưa cài): `security-guidance` từ `claude-plugins-official` (cảnh báo bảo mật chạy ngầm).
+  - Flow làm task: `/dev-kit:check-spec` → `/dev-kit:brainstorm` → `/dev-kit:write-plan` → `/dev-kit:execute-plan` → `/dev-kit:recheck-spec` → `/dev-kit:code-review` → `/dev-kit:create-pr`; bug: `/dev-kit:fix-bug`.
   - Tắt tạm verify-gate khi cần: đặt env `DEV_KIT_VERIFY=off`.
