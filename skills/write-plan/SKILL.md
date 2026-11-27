@@ -21,7 +21,7 @@ Output: `docs/plans/YYYY-MM-DD-<slug>.md` (repo có quy ước khác → theo re
 - **skip-test** (`--skip-test`): không có bước viết test mới. Mỗi task verify bằng:
   1. lệnh trong `.claude/verify.json` (hoặc lint + typecheck + test đang có của repo theo CLAUDE.md), và
   2. mục **Kiểm tra tay** cụ thể: thao tác gì (mở trang nào, gọi API nào với input nào, chạy lệnh nào), mong đợi thấy gì. Không viết "kiểm tra hoạt động đúng".
-- Dòng đầu plan ghi đúng một trong hai: `**Chế độ test:** TDD` hoặc `**Chế độ test:** skip-test`. `dev-kit:execute-plan` đọc dòng này.
+- Header plan ghi đúng một trong hai: `**Chế độ test:** TDD` hoặc `**Chế độ test:** skip-test`. `dev-kit:execute-plan` đọc dòng này.
 - TDD nhưng có task không test tự động được (config, UI thuần, hạ tầng) → task đó ghi `(không test tự động: <lý do>)` và dùng bước Kiểm tra tay như skip-test.
 
 ## 3. Phạm vi

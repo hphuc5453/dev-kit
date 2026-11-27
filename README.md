@@ -1,53 +1,59 @@
 # dev-kit
 
-Bộ dev dùng chung cho mọi project: tuân thủ rule của repo, code đơn giản (ngưỡng độ phức tạp được lint đo + hook ép), đối chiếu spec, fix bug, review, commit/PR.
+Bộ dev dùng chung cho mọi project: tuân thủ rule của repo, code đơn giản (ngưỡng độ phức tạp được lint đo + hook ép), chốt yêu cầu, bàn cách làm, lập plan, triển khai, chấm spec, review, commit/PR, fix bug — tất cả trong một plugin, tự chỉnh được.
 
 Hướng dẫn chi tiết (cách gọi từng skill, cấu hình verify-gate, ví dụ end-to-end, xử lý sự cố): **[docs/USAGE.md](docs/USAGE.md)**.
 
 ## Thành phần
 
-| Việc | Thành phần | Nguồn |
-|---|---|---|
-| Setup rule + lint độ phức tạp cho repo | `/dev-kit:setup` | dev-kit |
-| Ép typecheck/lint/test sạch trước khi Claude báo xong | hook `verify-gate` (Stop) | dev-kit |
-| Chốt yêu cầu trước khi code, chấm spec sau khi code | `/dev-kit:check-spec` | dev-kit |
-| Sửa bug | `/dev-kit:fix-bug` | dev-kit |
-| Brainstorm → plan → TDD → debug | `superpowers` | claude-plugins-official |
-| Review | `/code-review` | có sẵn trong Claude Code |
-| Commit / push / PR | `commit-commands` | claude-plugins-official |
-| Bảo mật (chạy ngầm) | `security-guidance` | claude-plugins-official |
+| Việc | Thành phần |
+|---|---|
+| Setup rule + lint độ phức tạp cho repo | `/dev-kit:setup` |
+| Chốt yêu cầu trước khi code | `/dev-kit:check-spec` |
+| Bàn và chốt cách làm → design doc | `/dev-kit:brainstorm` |
+| Lập plan chia task (TDD hoặc `--skip-test`) | `/dev-kit:write-plan` |
+| Triển khai plan tuần tự trong một phiên | `/dev-kit:execute-plan` |
+| Chấm từng yêu cầu sau khi code | `/dev-kit:recheck-spec` |
+| Review diff / PR (`--fix` để sửa) | `/dev-kit:code-review` |
+| Commit theo rule repo (`--vi`) | `/dev-kit:commit` |
+| Commit + push + mở PR (`--vi`, `--draft`, `--base`) | `/dev-kit:create-pr` |
+| Sửa bug theo nguyên nhân gốc | `/dev-kit:fix-bug` |
+| Ép typecheck/lint/test sạch trước khi Claude báo xong | hook `verify-gate` (Stop) |
+
+Plugin đi kèm khuyến nghị: `security-guidance` (claude-plugins-official), cảnh báo bảo mật chạy ngầm.
 
 ## Flow
 
 ```
 Repo mới ──► /dev-kit:setup ──► CLAUDE.md · code-standards · tech-debt · lint ngưỡng · .claude/verify.json   (1 lần / repo)
 
-Task có spec ──► /dev-kit:check-spec trước ──► chốt câu hỏi mở
+Task có spec ──► /dev-kit:check-spec ──► chốt câu hỏi mở
                          │
-Task / bug ──────────────┼──► superpowers: [brainstorm nếu còn phải chọn cách làm] → writing-plans → triển khai (TDD)
-                         │    hoặc /dev-kit:fix-bug cho bug
-                         │    (chọn skill theo tình huống: docs/USAGE.md#bắt-đầu-nhanh-nên-gọi-skill-nào)
+Ý tưởng ─────────────────┼──► /dev-kit:brainstorm (nếu còn phải chọn cách làm) ──► design doc
+                         │
+                         ▼
+              /dev-kit:write-plan [--skip-test] ──► /dev-kit:execute-plan
+              (bug: /dev-kit:fix-bug)
                          │
                          ▼
               verify-gate tự chạy khi Claude định dừng: fail → phải sửa tiếp
                          │
                          ▼
-              /dev-kit:check-spec sau ──► /code-review ──► /commit-commands:commit-push-pr
-              (security-guidance chạy ngầm suốt quá trình)
+              /dev-kit:recheck-spec ──► /dev-kit:code-review ──► /dev-kit:create-pr
+                                                               (hoặc /dev-kit:commit)
 ```
 
 ## Cài đặt
 
 ```
-# 1. Plugin đi kèm
-/plugin install superpowers@claude-plugins-official
-/plugin install commit-commands@claude-plugins-official
+# 1. Plugin đi kèm (tuỳ chọn)
 /plugin install security-guidance@claude-plugins-official
 
 # 2. dev-kit (từ thư mục local; sau khi push GitHub thì thay bằng <owner>/dev-kit)
 /plugin marketplace add d:/sources/dev-kit
 /plugin install dev-kit@dev-kit
 ```
+
 
 Cập nhật sau khi sửa dev-kit: `/plugin marketplace update dev-kit` rồi khởi động lại phiên.
 
@@ -68,5 +74,9 @@ Hàm ≤ 50 dòng · cyclomatic ≤ 10 · cognitive ≤ 15 · lồng ≤ 3 · th
 ## Phát triển
 
 ```
-npm test    # chạy mọi *.test.cjs trong tests/: hook verify-gate + script detect-stack (node:test, không cần dependency)
+npm test    # chạy mọi *.test.cjs trong tests/: hook verify-gate, script detect-stack, cấu trúc skill (node:test, không cần dependency)
 ```
+
+## Ghi công
+
+Các skill `brainstorm`, `write-plan`, `execute-plan`, `code-review` và phần debug trong `fix-bug` được viết lại dựa trên một bộ skill mã nguồn mở theo giấy phép MIT. Chi tiết trong [NOTICE](NOTICE).
