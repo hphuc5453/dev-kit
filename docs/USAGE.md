@@ -8,10 +8,11 @@ Tài liệu cho dev dùng dev-kit trong project hằng ngày. Tổng quan và l�
 |---|---|---|
 | Repo chưa dùng dev-kit (chưa có `.claude/verify.json`) | `/dev-kit:setup` | CLAUDE.md, chuẩn code, lint độ phức tạp, verify-gate |
 | Có spec / ticket / AC, chưa code | `/dev-kit:check-spec <spec>` | File spec-check: yêu cầu có ID, edge case, câu hỏi mở |
+| Không có docs, nhưng **mô tả đã cụ thể** (biết rõ cần gì) | `/dev-kit:check-spec <mô tả>` | Như trên, mô tả của bạn chính là spec |
 | Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task nhỏ | `Làm task theo <spec-check>, không cần brainstorm, làm luôn` | Code luôn, có test trước |
 | Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task lớn | `/dev-kit:write-plan <spec-check>` | Plan chia task ở `docs/plans/` |
 | Spec-check đã chốt nhưng **còn phải chọn cách làm** (BE hay FE, có bảng mới không...) | `/dev-kit:brainstorm <spec-check>` | Bàn phương án → design doc ở `docs/specs/` |
-| Chưa có spec, chỉ có ý tưởng | `/dev-kit:brainstorm <ý tưởng>` | Hỏi đáp → phương án → design doc |
+| Chưa có spec, chỉ có ý tưởng hoặc mô tả còn mơ hồ | `/dev-kit:brainstorm <ý tưởng>` | Hỏi đáp → phương án → design doc |
 | Design doc đã duyệt | `/dev-kit:write-plan <design doc>` | Plan, mặc định TDD |
 | Task không cần / không muốn viết file test | `/dev-kit:write-plan <design doc> --skip-test` | Plan verify bằng lint/typecheck/test có sẵn + bước kiểm tra tay |
 | Đã có plan | `/dev-kit:execute-plan <plan>` | Claude làm tuần tự từng task, commit từng task, tự review ở cuối |
@@ -36,7 +37,8 @@ spec / ticket
   → /dev-kit:create-pr       commit + push + PR; --vi cho tiếng Việt
 Chỉ commit: /dev-kit:commit
 Bug: /dev-kit:fix-bug
-Không có spec: bắt đầu từ /dev-kit:brainstorm
+Không có spec, mô tả cụ thể: bắt đầu từ /dev-kit:check-spec <mô tả>
+Không có spec, chỉ có ý tưởng: bắt đầu từ /dev-kit:brainstorm
 ```
 
 ### check-spec và brainstorm khác nhau thế nào?
@@ -49,6 +51,26 @@ Hai skill bổ sung cho nhau, không thay thế nhau:
 | Sau khi code | `/dev-kit:recheck-spec` chấm theo file này | Không có |
 
 Khi gọi brainstorm hoặc write-plan sau check-spec, luôn trỏ tới file spec-check để skill không hỏi lại phần đã chốt.
+
+### Nên bắt đầu từ check-spec hay brainstorm?
+Chọn theo việc **bạn đã biết rõ cần làm gì chưa**, không theo việc có docs hay không.
+
+| Tình huống | Bắt đầu từ | Ví dụ |
+|---|---|---|
+| Có spec / ticket / checklist / AC | `/dev-kit:check-spec <spec>` | `docs/specs/checkout.pdf`, ticket Jira dán vào |
+| Không có docs, nhưng mô tả đã cụ thể: kể ra được từng việc cần có, kiểm tra được đúng/sai | `/dev-kit:check-spec <mô tả>` | "Thêm filter theo khoảng ngày cho trang đơn hàng, mặc định 7 ngày gần nhất, giữ filter khi chuyển trang" |
+| Chỉ có ý tưởng, chưa rõ làm gì, cho ai, vì sao | `/dev-kit:brainstorm <ý tưởng>` | "Muốn có tính năng thông báo cho user" |
+| Biết làm gì nhưng chưa biết làm thế nào | `/dev-kit:check-spec` → `/dev-kit:brainstorm <spec-check>` | "Áp mã giảm giá ở checkout", chưa chọn tính giá ở BE hay FE |
+| Việc nhỏ, đủ thông tin, chỉ một cách làm | Không cần skill, nói "làm luôn" | "Đổi màu nút Lưu sang xanh" |
+
+Mẹo nhận biết: thử viết ra 3–5 dòng "xong khi…". Viết được → check-spec. Không viết được → brainstorm.
+
+Khi chạy check-spec chỉ với mô tả:
+- Skill tự đánh ID `R1`, `R2`… cho từng ý trong mô tả. Mô tả càng ngắn thì phần **Câu hỏi mở** càng dài, vì skill không tự bịa yêu cầu bạn chưa nói.
+- File kết quả nằm ở `docs/spec-checks/<slug>-spec-check.md`.
+- Repo chưa có CLAUDE.md hay docs vẫn chạy được; skill dò phạm vi code bằng từ khoá trong mô tả.
+
+Khi bắt đầu từ brainstorm (không qua check-spec): sẽ không có file spec-check, nên `/dev-kit:recheck-spec` lúc cuối phải trích yêu cầu từ design doc. Muốn chấm chặt theo từng ID thì sau khi design doc được duyệt, chạy `/dev-kit:check-spec <design doc>` trước `/dev-kit:write-plan`.
 
 ---
 
@@ -152,7 +174,7 @@ Hàm ≤ 50 dòng · cyclomatic ≤ 10 · cognitive ≤ 15 · lồng ≤ 3 · th
 
 ## 3. Chốt yêu cầu — `/dev-kit:check-spec`
 
-Dùng **trước khi code** cho task có tài liệu yêu cầu (spec, ticket, checklist, AC). Skill **không sửa code** và không bàn cách làm.
+Dùng **trước khi code** cho task có tài liệu yêu cầu (spec, ticket, checklist, AC), hoặc chỉ có mô tả nhưng mô tả đã cụ thể. Mô tả còn mơ hồ thì dùng `/dev-kit:brainstorm` (xem [Nên bắt đầu từ check-spec hay brainstorm?](#nên-bắt-đầu-từ-check-spec-hay-brainstorm)). Skill **không sửa code** và không bàn cách làm.
 
 ### Cú pháp
 ```
@@ -168,6 +190,11 @@ Ví dụ:
 Goal: cho phép áp mã giảm giá ở bước thanh toán
 AC1: mã hết hạn hiển thị "Mã giảm giá đã hết hạn"
 AC2: mỗi đơn chỉ áp 1 mã
+```
+
+Không có spec, chỉ có mô tả:
+```
+/dev-kit:check-spec Thêm filter theo khoảng ngày cho trang đơn hàng, mặc định 7 ngày gần nhất, giữ filter khi chuyển trang
 ```
 
 ### Kết quả
@@ -189,7 +216,7 @@ File gồm các mục: Tổng quan (bảng ID / hiện trạng) · Chi tiết t�
 
 ## 4. Bàn cách làm — `/dev-kit:brainstorm`
 
-Dùng khi còn phải **chọn cách làm**, hoặc khi chỉ có ý tưởng chưa có spec.
+Dùng khi còn phải **chọn cách làm**, hoặc khi chỉ có ý tưởng, chưa rõ cần làm gì.
 
 ```
 /dev-kit:brainstorm docs/specs/ap-ma-giam-gia-spec-check.md
