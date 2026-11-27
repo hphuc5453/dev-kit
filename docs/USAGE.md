@@ -17,6 +17,7 @@ Tài liệu cho dev dùng dev-kit trong project hằng ngày. Tổng quan và l�
 | Task không cần / không muốn viết file test | `/dev-kit:write-plan <design doc> --skip-test` | Plan verify bằng lint/typecheck/test có sẵn + bước kiểm tra tay |
 | Đã có plan | `/dev-kit:execute-plan <plan>` | Claude làm tuần tự từng task, commit từng task, tự review ở cuối |
 | Gặp bug | `/dev-kit:fix-bug <mô tả / log>` | Nguyên nhân gốc → duyệt → test hồi quy → sửa |
+| Không hiểu vì sao code viết vậy, nghi có cách tốt hơn | `/dev-kit:explain-code <file:line / hàm>` | Lý do có bằng chứng → đánh giá → đề xuất, chờ bạn chọn |
 | Code xong, có spec | `/dev-kit:recheck-spec <spec-check>` | Chấm từng yêu cầu ✅/⚠️/❌/❓ |
 | Trước khi tạo PR | `/dev-kit:code-review` (thêm `--fix` để sửa) | Danh sách lỗi đã kiểm chứng, xếp theo mức nghiêm trọng |
 | Chỉ muốn commit | `/dev-kit:commit` (thêm `--vi` cho tiếng Việt) | Commit theo rule của repo |
@@ -37,6 +38,7 @@ spec / ticket
   → /dev-kit:create-pr       commit + push + PR; --vi cho tiếng Việt
 Chỉ commit: /dev-kit:commit
 Bug: /dev-kit:fix-bug
+Không hiểu code: /dev-kit:explain-code
 Không có spec, mô tả cụ thể: bắt đầu từ /dev-kit:check-spec <mô tả>
 Không có spec, chỉ có ý tưởng: bắt đầu từ /dev-kit:brainstorm
 ```
@@ -84,10 +86,11 @@ Khi bắt đầu từ brainstorm (không qua check-spec): sẽ không có file s
 - [8. Review — `/dev-kit:code-review`](#8-review--dev-kitcode-review)
 - [9. Commit và PR — `/dev-kit:commit`, `/dev-kit:create-pr`](#9-commit-và-pr--dev-kitcommit-dev-kitcreate-pr)
 - [10. Sửa bug — `/dev-kit:fix-bug`](#10-sửa-bug--dev-kitfix-bug)
-- [11. Hook verify-gate](#11-hook-verify-gate)
-- [12. Ví dụ một task từ đầu đến cuối](#12-ví-dụ-một-task-từ-đầu-đến-cuối)
-- [13. Xử lý sự cố](#13-xử-lý-sự-cố)
-- [14. Câu hỏi thường gặp](#14-câu-hỏi-thường-gặp)
+- [11. Giải thích code — `/dev-kit:explain-code`](#11-giải-thích-code--dev-kitexplain-code)
+- [12. Hook verify-gate](#12-hook-verify-gate)
+- [13. Ví dụ một task từ đầu đến cuối](#13-ví-dụ-một-task-từ-đầu-đến-cuối)
+- [14. Xử lý sự cố](#14-xử-lý-sự-cố)
+- [15. Câu hỏi thường gặp](#15-câu-hỏi-thường-gặp)
 
 ---
 
@@ -119,7 +122,7 @@ Từ thư mục local (khi đang phát triển chính dev-kit):
 /plugin install dev-kit@dev-kit
 ```
 
-Khởi động lại phiên Claude Code. Gõ `/dev-kit:` để kiểm tra; danh sách gợi ý phải có đủ 10 skill: `setup`, `check-spec`, `brainstorm`, `write-plan`, `execute-plan`, `recheck-spec`, `code-review`, `commit`, `create-pr`, `fix-bug`.
+Khởi động lại phiên Claude Code. Gõ `/dev-kit:` để kiểm tra; danh sách gợi ý phải có đủ 11 skill: `setup`, `check-spec`, `brainstorm`, `write-plan`, `execute-plan`, `recheck-spec`, `code-review`, `commit`, `create-pr`, `fix-bug`, `explain-code`.
 
 ### Cập nhật và gỡ cài đặt
 ```
@@ -374,7 +377,39 @@ Bạn cũng có thể dán thẳng stack trace hoặc log và nói "sửa lỗi 
 
 ---
 
-## 11. Hook verify-gate
+## 11. Giải thích code — `/dev-kit:explain-code`
+
+```
+/dev-kit:explain-code src/orders/order.service.ts:120-160 sao lại phải retry 3 lần ở đây?
+```
+Dùng khi code **chạy được** nhưng bạn không hiểu vì sao AI (hoặc ai đó) viết như vậy, hoặc nghi có cách tốt hơn. Có thể truyền `file:line`, tên hàm, commit, đoạn code dán vào, hoặc bôi đen code trong IDE rồi hỏi "sao viết vậy".
+
+### Quy trình
+
+| Bước | Việc | Dừng chờ bạn? |
+|---|---|---|
+| 1. Xác định | Đoạn code nào, câu hỏi thật là gì (làm gì / vì sao / có cần không / có cách tốt hơn không) | Chỉ hỏi 1 câu nếu chưa rõ |
+| 2. Hiểu code | Đọc code, nơi gọi, nơi bị gọi, test liên quan; tóm luồng | — |
+| 3. Tìm lý do | `git blame` / `git log`, plan, design doc, spec-check, tech-debt, CLAUDE.md, ngưỡng độ phức tạp, pattern của repo; kiểm chứng từng lý do | — |
+| 4. Đánh giá | Soi phòng thủ thừa, abstraction thừa, tự viết lại helper có sẵn, lệch pattern, code chết, rủi ro thật | — |
+| 5. Đề xuất | Tối đa 2 phương án cụ thể với repo + đánh đổi + khuyến nghị, hoặc "giữ nguyên" | — |
+| 6. Trả lời | Luồng · Vì sao (**có bằng chứng** / **suy luận** / **không có lý do**) · Đánh giá · Đề xuất | **Có** |
+| 7. Sau khi chọn | Thay đổi nhỏ: test chốt hành vi → sửa → verify. Lớn: `/dev-kit:brainstorm` hoặc ghi tech-debt. Là bug: `/dev-kit:fix-bug` | — |
+
+### Khác `fix-bug` thế nào?
+| | `/dev-kit:fix-bug` | `/dev-kit:explain-code` |
+|---|---|---|
+| Khi nào | Code chạy **sai** | Code chạy được nhưng **khó hiểu** hoặc nghi chưa tối ưu |
+| Đầu ra | Bản sửa + test hồi quy | Giải thích có nguồn + đề xuất; chỉ sửa khi bạn chọn |
+
+### Skill sẽ không làm
+- Bịa lý do cho hợp lý. Không tìm thấy lý do thì nói thẳng, kể cả khi chính Claude viết đoạn đó.
+- Sửa code trước khi bạn chọn phương án.
+- Đổi kiến trúc hay sửa bug trong skill này; việc đó chuyển sang `brainstorm` hoặc `fix-bug`.
+
+---
+
+## 12. Hook verify-gate
 
 Hook chặn Claude báo "xong" khi typecheck, lint hoặc test còn fail. Bạn không cần gọi nó; hook tự chạy.
 
@@ -452,7 +487,7 @@ DEV_KIT_VERIFY=off claude                # bash / zsh
 
 ---
 
-## 12. Ví dụ một task từ đầu đến cuối
+## 13. Ví dụ một task từ đầu đến cuối
 
 Task: *"Thêm áp mã giảm giá ở checkout"*, spec ở `docs/specs/checkout.pdf`. Repo đã chạy `/dev-kit:setup` từ trước.
 
@@ -486,11 +521,11 @@ Task nhỏ, chỉ có một cách làm: sau bước 1 gõ `Làm task theo <spec-
 
 Task UI không cần file test: ở bước 3 thêm `--skip-test`; bước 4 sẽ chạy lint/typecheck/test có sẵn và cuối cùng đưa bạn danh sách kiểm tra tay.
 
-Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>`, xong quay lại bước đang dở.
+Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>`, xong quay lại bước đang dở. Không hiểu đoạn code Claude vừa viết: `/dev-kit:explain-code <file:line>`.
 
 ---
 
-## 13. Xử lý sự cố
+## 14. Xử lý sự cố
 
 | Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
 |---|---|---|
@@ -506,7 +541,7 @@ Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>`, xong quay lại 
 
 ---
 
-## 14. Câu hỏi thường gặp
+## 15. Câu hỏi thường gặp
 
 **Cài dev-kit có làm chậm repo chưa setup không?**
 Không. Ở repo không có `.claude/verify.json`, hook thoát ngay.

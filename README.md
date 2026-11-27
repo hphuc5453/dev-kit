@@ -1,6 +1,6 @@
 # dev-kit
 
-Bộ dev dùng chung cho mọi project: tuân thủ rule của repo, code đơn giản (ngưỡng độ phức tạp được lint đo + hook ép), chốt yêu cầu, bàn cách làm, lập plan, triển khai, chấm spec, review, commit/PR, fix bug — tất cả trong một plugin, tự chỉnh được.
+Bộ dev dùng chung cho mọi project: tuân thủ rule của repo, code đơn giản (ngưỡng độ phức tạp được lint đo + hook ép), chốt yêu cầu, bàn cách làm, lập plan, triển khai, chấm spec, review, commit/PR, fix bug, giải thích code — tất cả trong một plugin, tự chỉnh được.
 
 Hướng dẫn chi tiết (cách gọi từng skill, cấu hình verify-gate, ví dụ end-to-end, xử lý sự cố): **[docs/USAGE.md](docs/USAGE.md)**.
 
@@ -18,6 +18,7 @@ Hướng dẫn chi tiết (cách gọi từng skill, cấu hình verify-gate, v�
 | Commit theo rule repo (`--vi`) | `/dev-kit:commit` |
 | Commit + push + mở PR (`--vi`, `--draft`, `--base`) | `/dev-kit:create-pr` |
 | Sửa bug theo nguyên nhân gốc | `/dev-kit:fix-bug` |
+| Giải thích vì sao code viết vậy + đề xuất hướng tốt hơn | `/dev-kit:explain-code` |
 | Ép typecheck/lint/test sạch trước khi Claude báo xong | hook `verify-gate` (Stop) |
 
 Plugin đi kèm khuyến nghị: `security-guidance` (claude-plugins-official), cảnh báo bảo mật chạy ngầm.
@@ -33,7 +34,7 @@ Task có spec ──► /dev-kit:check-spec ──► chốt câu hỏi mở
                          │
                          ▼
               /dev-kit:write-plan [--skip-test] ──► /dev-kit:execute-plan
-              (bug: /dev-kit:fix-bug)
+              (bug: /dev-kit:fix-bug · chưa hiểu code: /dev-kit:explain-code)
                          │
                          ▼
               verify-gate tự chạy khi Claude định dừng: fail → phải sửa tiếp

@@ -1,8 +1,8 @@
 {
   "name": "dev-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Claude Code plugin: setup, verify-gate, check-spec, brainstorm, write-plan, execute-plan, recheck-spec, code-review, commit, create-pr, fix-bug",
+  "description": "Claude Code plugin: setup, verify-gate, check-spec, brainstorm, write-plan, execute-plan, recheck-spec, code-review, commit, create-pr, fix-bug, explain-code",
   "scripts": {
     "test": "node --test"
   }
