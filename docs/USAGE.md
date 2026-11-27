@@ -7,40 +7,65 @@ Tài liệu cho dev dùng dev-kit trong project hằng ngày. Tổng quan và l�
 | Tình huống | Gõ | Kết quả |
 |---|---|---|
 | Repo chưa dùng dev-kit (chưa có `.claude/verify.json`) | `/dev-kit:setup` | CLAUDE.md, chuẩn code, lint độ phức tạp, verify-gate |
-| Có spec / ticket / AC, chưa code | `/dev-kit:check-spec trước <spec>` | File spec-check: yêu cầu có ID, edge case, câu hỏi mở |
-| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task nhỏ | `Làm task theo <spec-check>, không cần brainstorm, làm luôn` | Code luôn, có test trước (TDD) |
-| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task lớn | `/superpowers:writing-plans <spec-check>` | Plan chia task ở `docs/superpowers/plans/` |
-| Spec-check đã chốt nhưng **còn phải chọn cách làm** (BE hay FE, có bảng mới không...) | `/superpowers:brainstorming Yêu cầu đã chốt trong <spec-check>, chỉ bàn phương án` | Design doc → tự chuyển sang viết plan |
-| Chưa có spec, chỉ có ý tưởng | `/superpowers:brainstorming <ý tưởng>` | Hỏi đáp → design doc → plan |
-| Đã có plan, các task độc lập nhau | `/superpowers:subagent-driven-development <plan>` | Mỗi task một subagent, review từng task (chất lượng cao, tốn token hơn) |
-| Đã có plan, các task nối tiếp nhau hoặc plan ngắn | `/superpowers:executing-plans <plan>` | Claude làm lần lượt, review một lần ở cuối (rẻ hơn) |
+| Có spec / ticket / AC, chưa code | `/dev-kit:check-spec <spec>` | File spec-check: yêu cầu có ID, edge case, câu hỏi mở |
+| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task nhỏ | `Làm task theo <spec-check>, không cần brainstorm, làm luôn` | Code luôn, có test trước |
+| Spec-check đã chốt, **chỉ có một cách làm hợp lý**, task lớn | `/dev-kit:write-plan <spec-check>` | Plan chia task ở `docs/plans/` |
+| Spec-check đã chốt nhưng **còn phải chọn cách làm** (BE hay FE, có bảng mới không...) | `/dev-kit:brainstorm <spec-check>` | Bàn phương án → design doc ở `docs/specs/` |
+| Chưa có spec, chỉ có ý tưởng | `/dev-kit:brainstorm <ý tưởng>` | Hỏi đáp → phương án → design doc |
+| Design doc đã duyệt | `/dev-kit:write-plan <design doc>` | Plan, mặc định TDD |
+| Task không cần / không muốn viết file test | `/dev-kit:write-plan <design doc> --skip-test` | Plan verify bằng lint/typecheck/test có sẵn + bước kiểm tra tay |
+| Đã có plan | `/dev-kit:execute-plan <plan>` | Claude làm tuần tự từng task, commit từng task, tự review ở cuối |
 | Gặp bug | `/dev-kit:fix-bug <mô tả / log>` | Nguyên nhân gốc → duyệt → test hồi quy → sửa |
-| Code xong, có spec | `/dev-kit:check-spec sau <spec>` | Chấm từng yêu cầu ✅/⚠️/❌ |
-| Trước khi tạo PR | `/code-review` → `/commit-commands:commit-push-pr` | Review, commit, push, mở PR |
+| Code xong, có spec | `/dev-kit:recheck-spec <spec-check>` | Chấm từng yêu cầu ✅/⚠️/❌/❓ |
+| Trước khi tạo PR | `/dev-kit:code-review` (thêm `--fix` để sửa) | Danh sách lỗi đã kiểm chứng, xếp theo mức nghiêm trọng |
+| Chỉ muốn commit | `/dev-kit:commit` (thêm `--vi` cho tiếng Việt) | Commit theo rule của repo |
+| Commit + push + mở PR | `/dev-kit:create-pr` (`--vi`, `--draft`, `--base <branch>`) | PR theo template của repo, liệt kê các mục đã làm |
 
-**Gõ slash command là chắc chắn nhất.** Khi bạn viết câu tự nhiên (vd "làm task này đi"), Claude tự chọn skill theo mô tả của skill, nên kết quả có thể khác ý bạn. Riêng khi đã cài superpowers, câu kiểu "làm feature / làm task" gần như luôn khởi động `brainstorming` trước. Muốn bỏ bước này thì nói rõ *"không cần brainstorm, làm luôn"*.
+**Gõ slash command là chắc chắn nhất.** Khi bạn viết câu tự nhiên (vd "làm task này đi"), Claude tự chọn skill theo mô tả của skill, nên kết quả có thể khác ý bạn. Muốn bỏ bước bàn phương án thì nói rõ *"không cần brainstorm, làm luôn"*.
 
-### check-spec và brainstorming khác nhau thế nào?
+### Flow đầy đủ
+
+```
+spec / ticket
+  → /dev-kit:check-spec      chốt YÊU CẦU (R1, R2…, edge case, câu hỏi mở)
+  → /dev-kit:brainstorm      chốt CÁCH LÀM (bỏ qua nếu chỉ có một cách hợp lý)
+  → /dev-kit:write-plan      chia task; --skip-test nếu không viết test
+  → /dev-kit:execute-plan    làm tuần tự trong một phiên
+  → /dev-kit:recheck-spec    chấm từng yêu cầu ✅/⚠️/❌
+  → /dev-kit:code-review     review diff; --fix để sửa
+  → /dev-kit:create-pr       commit + push + PR; --vi cho tiếng Việt
+Chỉ commit: /dev-kit:commit
+Bug: /dev-kit:fix-bug
+Không có spec: bắt đầu từ /dev-kit:brainstorm
+```
+
+### check-spec và brainstorm khác nhau thế nào?
 Hai skill bổ sung cho nhau, không thay thế nhau:
 
-| | `/dev-kit:check-spec trước` | `superpowers:brainstorming` |
+| | `/dev-kit:check-spec` | `/dev-kit:brainstorm` |
 |---|---|---|
 | Trả lời câu hỏi | Spec yêu cầu **gì**, chỗ nào thiếu hoặc mâu thuẫn | Làm **thế nào**, chọn phương án nào |
-| Đầu ra | `*-spec-check.md`: nguồn đúng cho **yêu cầu** | `docs/superpowers/specs/*-design.md`: nguồn đúng cho **cách làm** |
-| Sau khi code | Có chế độ `sau` để chấm | Không có |
+| Đầu ra | `*-spec-check.md`: nguồn đúng cho **yêu cầu** | `docs/specs/*-design.md`: nguồn đúng cho **cách làm** |
+| Sau khi code | `/dev-kit:recheck-spec` chấm theo file này | Không có |
 
-Thứ tự: check-spec trước → chốt câu hỏi mở với PM → (brainstorming nếu còn phải chọn cách làm) → writing-plans → triển khai → check-spec sau. Khi gọi brainstorming sau check-spec, luôn trỏ tới file spec-check để nó không hỏi lại phần đã chốt.
+Khi gọi brainstorm hoặc write-plan sau check-spec, luôn trỏ tới file spec-check để skill không hỏi lại phần đã chốt.
 
 ---
 
 - [1. Cài đặt](#1-cài-đặt)
 - [2. Áp dev-kit cho một repo — `/dev-kit:setup`](#2-áp-dev-kit-cho-một-repo--dev-kitsetup)
-- [3. Đối chiếu spec — `/dev-kit:check-spec`](#3-đối-chiếu-spec--dev-kitcheck-spec)
-- [4. Sửa bug — `/dev-kit:fix-bug`](#4-sửa-bug--dev-kitfix-bug)
-- [5. Hook verify-gate](#5-hook-verify-gate)
-- [6. Ví dụ một task từ đầu đến cuối](#6-ví-dụ-một-task-từ-đầu-đến-cuối)
-- [7. Xử lý sự cố](#7-xử-lý-sự-cố)
-- [8. Câu hỏi thường gặp](#8-câu-hỏi-thường-gặp)
+- [3. Chốt yêu cầu — `/dev-kit:check-spec`](#3-chốt-yêu-cầu--dev-kitcheck-spec)
+- [4. Bàn cách làm — `/dev-kit:brainstorm`](#4-bàn-cách-làm--dev-kitbrainstorm)
+- [5. Lập plan — `/dev-kit:write-plan`](#5-lập-plan--dev-kitwrite-plan)
+- [6. Triển khai plan — `/dev-kit:execute-plan`](#6-triển-khai-plan--dev-kitexecute-plan)
+- [7. Chấm spec sau khi code — `/dev-kit:recheck-spec`](#7-chấm-spec-sau-khi-code--dev-kitrecheck-spec)
+- [8. Review — `/dev-kit:code-review`](#8-review--dev-kitcode-review)
+- [9. Commit và PR — `/dev-kit:commit`, `/dev-kit:create-pr`](#9-commit-và-pr--dev-kitcommit-dev-kitcreate-pr)
+- [10. Sửa bug — `/dev-kit:fix-bug`](#10-sửa-bug--dev-kitfix-bug)
+- [11. Hook verify-gate](#11-hook-verify-gate)
+- [12. Ví dụ một task từ đầu đến cuối](#12-ví-dụ-một-task-từ-đầu-đến-cuối)
+- [13. Xử lý sự cố](#13-xử-lý-sự-cố)
+- [14. Câu hỏi thường gặp](#14-câu-hỏi-thường-gặp)
 
 ---
 
@@ -50,14 +75,13 @@ Thứ tự: check-spec trước → chốt câu hỏi mở với PM → (brainst
 - Claude Code (CLI, VS Code extension hoặc desktop app).
 - `node` có trong `PATH`, vì hook verify-gate chạy bằng Node.
 - `git`: verify-gate chỉ hoạt động trong git repo.
+- `gh` (GitHub CLI) đã đăng nhập, nếu dùng `/dev-kit:create-pr` hoặc review PR theo số.
 
 ### Cài plugin đi kèm (khuyến nghị)
 ```
-/plugin install superpowers@claude-plugins-official
-/plugin install commit-commands@claude-plugins-official
 /plugin install security-guidance@claude-plugins-official
 ```
-dev-kit vẫn chạy khi thiếu các plugin này, nhưng sẽ thiếu bước brainstorm/plan/TDD (superpowers), lệnh commit/PR (commit-commands) và cảnh báo bảo mật (security-guidance).
+Plugin này cảnh báo bảo mật chạy ngầm. dev-kit vẫn chạy đủ flow khi không cài nó.
 
 ### Cài dev-kit
 
@@ -73,7 +97,7 @@ Từ thư mục local (khi đang phát triển chính dev-kit):
 /plugin install dev-kit@dev-kit
 ```
 
-Khởi động lại phiên Claude Code. Gõ `/dev-kit:` để kiểm tra; danh sách gợi ý phải có `setup`, `check-spec`, `fix-bug`.
+Khởi động lại phiên Claude Code. Gõ `/dev-kit:` để kiểm tra; danh sách gợi ý phải có đủ 10 skill: `setup`, `check-spec`, `brainstorm`, `write-plan`, `execute-plan`, `recheck-spec`, `code-review`, `commit`, `create-pr`, `fix-bug`.
 
 ### Cập nhật và gỡ cài đặt
 ```
@@ -126,39 +150,113 @@ Hàm ≤ 50 dòng · cyclomatic ≤ 10 · cognitive ≤ 15 · lồng ≤ 3 · th
 
 ---
 
-## 3. Đối chiếu spec — `/dev-kit:check-spec`
+## 3. Chốt yêu cầu — `/dev-kit:check-spec`
 
-Dùng cho task có tài liệu yêu cầu (spec, ticket, checklist, AC). Skill chạy ở hai thời điểm và **không bao giờ sửa code**.
+Dùng **trước khi code** cho task có tài liệu yêu cầu (spec, ticket, checklist, AC). Skill **không sửa code** và không bàn cách làm.
 
 ### Cú pháp
 ```
-/dev-kit:check-spec [trước|sau] [đường dẫn spec] [nội dung task / AC]
+/dev-kit:check-spec [đường dẫn spec] [nội dung task / AC]
 ```
 - Spec hỗ trợ `.md`, `.txt`, `.pdf`, `.docx`. Đường dẫn tính từ root repo, có thể viết `@docs/...`.
 - Nội dung task có thể dán nhiều dòng gồm Goal, Checklist, AC và các ID như `UC_01`, `BR3`.
 - Phải có ít nhất spec **hoặc** nội dung task.
 
-### Chế độ TRƯỚC: chốt yêu cầu trước khi code
+Ví dụ:
 ```
-/dev-kit:check-spec trước docs/specs/checkout.pdf
+/dev-kit:check-spec docs/specs/checkout.pdf
 Goal: cho phép áp mã giảm giá ở bước thanh toán
 AC1: mã hết hạn hiển thị "Mã giảm giá đã hết hạn"
 AC2: mỗi đơn chỉ áp 1 mã
 ```
-Kết quả gồm:
+
+### Kết quả
 - Danh sách yêu cầu có ID (`R1`, `R2`... nếu spec chưa đánh ID). Text bắt buộc như thông báo lỗi, label hay tên field được chép **nguyên văn**.
-- Phần nào **đã có sẵn** trong code để tái dùng, phần nào phải làm mới.
+- Phần nào **đã có sẵn** trong code để tái dùng (kèm `file:line`), phần nào phải sửa hoặc làm mới.
 - **Edge case** spec chưa nói tới: input rỗng, trùng lặp, quyền, phân trang, timeout, concurrency, dữ liệu cũ.
 - **Câu hỏi mở** cần hỏi PM, design hoặc BE. Skill không tự bịa câu trả lời.
 - Phạm vi in-scope / out-of-scope.
 
-→ Chốt hết câu hỏi mở rồi mới bắt đầu code. Bước tiếp theo tuỳ task, xem bảng [Bắt đầu nhanh](#bắt-đầu-nhanh-nên-gọi-skill-nào): làm luôn, `writing-plans`, hoặc `brainstorming` nếu còn phải chọn cách làm.
+→ Chốt hết câu hỏi mở (trả lời trong chat, skill ghi vào file) rồi mới bắt đầu. Bước tiếp: làm luôn (task nhỏ), `/dev-kit:write-plan <spec-check>` (task lớn), hoặc `/dev-kit:brainstorm <spec-check>` (còn phải chọn cách làm).
 
-### Chế độ SAU: chấm kết quả sau khi code
+### File kết quả
+- Có file spec: `<thư mục chứa spec>/<slug>-spec-check.md`, ví dụ `docs/specs/ap-ma-giam-gia-spec-check.md`.
+- Không có file spec: `docs/spec-checks/<slug>-spec-check.md`.
+
+File gồm các mục: Tổng quan (bảng ID / hiện trạng) · Chi tiết từng yêu cầu · Edge case · Câu hỏi mở · Phạm vi · Thứ tự đề xuất. Sau khi code, `/dev-kit:recheck-spec` thêm kết quả chấm vào cuối file này. Nên commit file cùng PR để reviewer xem.
+
+---
+
+## 4. Bàn cách làm — `/dev-kit:brainstorm`
+
+Dùng khi còn phải **chọn cách làm**, hoặc khi chỉ có ý tưởng chưa có spec.
+
 ```
-/dev-kit:check-spec sau docs/specs/checkout.pdf
+/dev-kit:brainstorm docs/specs/ap-ma-giam-gia-spec-check.md
+/dev-kit:brainstorm Muốn có trang thống kê doanh thu theo tuần cho admin
 ```
-Skill chấm từng yêu cầu:
+
+Skill sẽ:
+1. Đọc spec-check, code liên quan, CLAUDE.md trước khi hỏi. Không hỏi lại điều spec-check hoặc code đã trả lời.
+2. Nhắc lại yêu cầu bằng lời của nó để bạn sửa, rồi hỏi **từng câu một**, ưu tiên câu về "vì sao" và điểm làm thay đổi thứ được build.
+3. Đưa 2–3 phương án kèm đánh đổi và khuyến nghị, trong một tin nhắn riêng, để bạn chọn.
+4. Viết design doc vào `docs/specs/YYYY-MM-DD-<slug>-design.md` (ngắn cho thay đổi nhỏ, đầy đủ cho dự án), tự rà, rồi đưa bạn duyệt.
+
+Skill **không code** cho tới khi bạn duyệt design doc. Cần xem giao diện thì skill phác thảo bằng ASCII trong chat. Muốn bỏ phần hỏi đáp thì nói *"làm luôn"*: skill nêu các lựa chọn lớn nó tự quyết rồi làm.
+
+Bước tiếp: `/dev-kit:write-plan <design doc>`.
+
+---
+
+## 5. Lập plan — `/dev-kit:write-plan`
+
+```
+/dev-kit:write-plan docs/specs/2026-11-27-ap-ma-giam-gia-design.md
+/dev-kit:write-plan docs/specs/2026-11-27-ap-ma-giam-gia-design.md --skip-test
+```
+
+Plan lưu ở `docs/plans/YYYY-MM-DD-<slug>.md`, gồm:
+- Header: Goal, Architecture, Tech Stack, link Spec / Spec-check, **Chế độ test**.
+- **Ràng buộc chung** chép nguyên văn từ spec, và **Điểm cần soát kỹ** (input / tình huống lỗi dễ gây hại mà spec chưa nói tới).
+- Các task, mỗi task có file cần tạo/sửa, interface dùng và cung cấp, các bước checkbox nhỏ (2–5 phút), lệnh chạy kèm kết quả mong đợi, và bước commit.
+
+### Hai chế độ test
+
+| | Mặc định (TDD) | `--skip-test` |
+|---|---|---|
+| Khi nào | Logic nghiệp vụ, API, hàm có input/output rõ | Task UI thuần, config, script một lần, hoặc bạn không muốn viết file test |
+| Mỗi task | Viết test → chạy thấy fail → code → chạy thấy pass → commit | Code → chạy lệnh trong `.claude/verify.json` (lint, typecheck, test đang có) → **kiểm tra tay** → commit |
+| Kiểm tra tay | Chỉ cho task không test tự động được | Mỗi task có bước cụ thể: thao tác gì, mong đợi thấy gì |
+
+Skill tự rà plan so với spec (yêu cầu nào chưa có task, bước mơ hồ, tên hàm lệch giữa các task) trước khi đưa bạn duyệt. Bước tiếp: `/dev-kit:execute-plan <plan>`.
+
+---
+
+## 6. Triển khai plan — `/dev-kit:execute-plan`
+
+```
+/dev-kit:execute-plan docs/plans/2026-11-27-ap-ma-giam-gia.md
+```
+
+- Đang ở main/master → skill tạo branch mới trước khi sửa code.
+- Làm **tuần tự** từng task trong phiên hiện tại, không dừng hỏi giữa các task. Chỉ dừng khi gặp thao tác không đảo ngược được, liên quan bảo mật, tác động ra ngoài repo (push, publish), hoặc plan hỏng tới mức không đi tiếp được.
+- Mỗi bước có lệnh thì chạy và so output với `Expected`. Tick checkbox trong file plan và commit cuối mỗi task, nên phiên bị ngắt hoặc compact vẫn làm tiếp đúng chỗ.
+- Chế độ TDD: không có code khi chưa thấy test fail. Chế độ skip-test: chạy toàn bộ verify, gom các bước kiểm tra tay cần người làm để đưa bạn ở cuối.
+- Plan sai chỗ nào → skill tự quyết theo spec và ghi vào mục **Quyết định khi triển khai** ở cuối plan.
+- Xong hết → chạy lại verify, tự review toàn branch, sửa lỗi quan trọng, rồi báo: các quyết định đã đưa ra, kiểm tra tay bạn cần làm, lỗi nhỏ để lại.
+
+Bước tiếp: `/dev-kit:recheck-spec` (nếu có spec-check), rồi `/dev-kit:code-review`.
+
+---
+
+## 7. Chấm spec sau khi code — `/dev-kit:recheck-spec`
+
+```
+/dev-kit:recheck-spec docs/specs/ap-ma-giam-gia-spec-check.md
+/dev-kit:recheck-spec docs/specs/checkout.pdf      # tự tìm spec-check cùng thư mục
+```
+
+Skill chấm từng yêu cầu trong spec-check:
 
 | Ký hiệu | Nghĩa |
 |---|---|
@@ -168,24 +266,61 @@ Skill chấm từng yêu cầu:
 | ❓ | Không kiểm chứng được từ code, cần test tay hoặc hỏi PM |
 
 Ngoài ra skill còn:
-- Chạy lệnh verify ở chế độ chỉ đọc (không `--fix`). Lỗi thuộc task được ghi là **Blocker**; lỗi có sẵn từ trước được ghi là *pre-existing*.
+- Chạy lệnh verify ở chế độ chỉ đọc (không `--fix`). Lỗi thuộc task được ghi là **Blocker**; lỗi có sẵn từ trước được ghi riêng.
 - Ghi chú yêu cầu nghiệp vụ quan trọng nhưng chưa có test.
 - Liệt kê **phần làm thừa**: thay đổi trong diff không thuộc yêu cầu nào (dấu hiệu scope creep).
 
-### Không ghi chế độ thì sao?
-- Đã có file spec-check của task này → chạy chế độ **sau** và cập nhật file đó.
-- Branch đã có thay đổi liên quan → **sau**.
-- Còn lại → **trước**.
-
-### File kết quả
-- Có file spec: `<thư mục chứa spec>/<slug>-spec-check.md`, ví dụ `docs/specs/ap-ma-giam-gia-spec-check.md`.
-- Không có file spec: `docs/spec-checks/<slug>-spec-check.md`.
-
-File gồm các mục: Tổng quan (bảng ID / trạng thái / bằng chứng) · Blocker verify · Chi tiết từng yêu cầu · Edge case · Câu hỏi mở · Làm thừa · Thứ tự đề xuất. Nên commit file này cùng PR để reviewer xem.
+Kết quả được thêm vào cuối file spec-check dưới mục `## Kết quả recheck <ngày>`; mỗi lần chạy thêm một mục mới để thấy tiến độ. `/dev-kit:create-pr` đọc mục mới nhất để đưa vào mô tả PR. Chưa có spec-check thì skill trích yêu cầu từ spec gốc, tạo file rồi chấm. Skill **không sửa code**.
 
 ---
 
-## 4. Sửa bug — `/dev-kit:fix-bug`
+## 8. Review — `/dev-kit:code-review`
+
+```
+/dev-kit:code-review              # diff branch hiện tại so với main, kể cả chưa commit
+/dev-kit:code-review --fix        # review rồi sửa luôn các lỗi đã kiểm chứng
+/dev-kit:code-review 42           # review PR #42 (cần gh)
+```
+
+- Đọc CLAUDE.md, code-standards, plan / spec-check (nếu có), và đọc cả hàm bao quanh chỗ đổi, không chỉ dòng `+`.
+- Soát theo checklist: logic và edge case, bảo mật, breaking change, dữ liệu/migration, hiệu năng, xử lý lỗi, test, rule của repo và ngưỡng độ phức tạp, code thừa.
+- **Mỗi lỗi được kiểm chứng** trước khi báo: phải có kịch bản cụ thể (input nào → sai gì). Chưa chứng minh được thì gắn nhãn `nghi ngờ`.
+- Kết quả trong chat, xếp theo: **quan trọng** (bug do thay đổi này, bảo mật, mất dữ liệu) · **có sẵn từ trước** · **nhỏ**, mỗi lỗi có link `file:line` và cách sửa.
+- `--fix`: sửa lỗi quan trọng và nhỏ đã kiểm chứng, ghi lỗi có sẵn từ trước vào `docs/tech-debt.md`, chạy verify, báo từng lỗi đã sửa / bỏ qua. Không commit.
+
+Có góp ý review từ người khác? Dán vào và nói "xử lý review này": skill kiểm tra từng góp ý trên code thật, hỏi lại mục chưa rõ trước khi sửa, phản biện có bằng chứng nếu góp ý sai.
+
+---
+
+## 9. Commit và PR — `/dev-kit:commit`, `/dev-kit:create-pr`
+
+### `/dev-kit:commit`
+```
+/dev-kit:commit
+/dev-kit:commit --vi
+```
+- Theo rule commit của repo (commitlint, CLAUDE.md, CONTRIBUTING, kiểu commit trong `git log`). Không có rule → conventional commits `type(scope): subject`.
+- Mặc định tiếng Anh; `--vi` viết tiếng Việt (giữ `type(scope):`).
+- Thay đổi tách rời rõ ràng → chia nhiều commit.
+- Không commit file chứa secret (`.env`, key, credentials, `settings.local.json`); gặp thì bỏ ra và cảnh báo.
+- Không push, không `--amend`, không `--no-verify`. Hook pre-commit fail → sửa nguyên nhân rồi tạo commit mới.
+
+### `/dev-kit:create-pr`
+```
+/dev-kit:create-pr
+/dev-kit:create-pr --vi --draft
+/dev-kit:create-pr --base develop
+```
+1. Đang ở main → tạo branch theo quy ước của repo.
+2. Còn thay đổi chưa commit → commit theo `/dev-kit:commit`.
+3. Push với `-u`. Không force push.
+4. Tạo PR bằng `gh`, điền theo PR template của repo nếu có. Branch đã có PR đang mở → cập nhật mô tả.
+
+Mô tả PR gồm: tóm tắt, **các mục đã làm** (lấy từ plan, spec-check hoặc diff), cách test (lệnh verify đã chạy, bước kiểm tra tay), kết quả recheck-spec, và ghi chú (quyết định khi triển khai, breaking change, việc cần làm sau merge). Skill không bao giờ merge PR.
+
+---
+
+## 10. Sửa bug — `/dev-kit:fix-bug`
 
 ```
 /dev-kit:fix-bug Đăng nhập bằng Google trên staging trả 500, log: TypeError: Cannot read properties of undefined (reading 'email') at auth.service.ts:88
@@ -197,7 +332,7 @@ Bạn cũng có thể dán thẳng stack trace hoặc log và nói "sửa lỗi 
 | Bước | Việc | Dừng chờ bạn? |
 |---|---|---|
 | 1. Tái hiện | Gom thông tin, đọc `docs/tech-debt.md` (có thể bug đã được ghi nhận), tái hiện bằng test, script hoặc log | Chỉ hỏi **một lần** nếu thiếu thông tin |
-| 2. Nguyên nhân gốc | Lần ngược từ triệu chứng về nguồn, kiểm chứng bằng bằng chứng (log, test, `git bisect`), tìm chỗ khác có cùng nguyên nhân | — |
+| 2. Nguyên nhân gốc | Lần ngược theo call stack tới nơi giá trị sai xuất hiện lần đầu, instrument ranh giới giữa các tầng, mỗi lần thử một giả thuyết, `git bisect` nếu là regression; 3 lần thử thất bại → dừng bàn với bạn | Chỉ khi thử 3 lần không ra |
 | 3. Đề xuất | Trình bày ngắn: Nguyên nhân · Cách sửa · Ảnh hưởng · Test · Ngoài phạm vi | **Có**, trừ khi bạn đã nói "sửa luôn" |
 | 4. Test hồi quy | Viết test tái hiện bug, test phải **fail** đúng lý do | — |
 | 5. Sửa | Sửa tối thiểu tại nguyên nhân gốc | — |
@@ -212,7 +347,7 @@ Bạn cũng có thể dán thẳng stack trace hoặc log và nói "sửa lỗi 
 
 ---
 
-## 5. Hook verify-gate
+## 11. Hook verify-gate
 
 Hook chặn Claude báo "xong" khi typecheck, lint hoặc test còn fail. Bạn không cần gọi nó; hook tự chạy.
 
@@ -290,43 +425,45 @@ DEV_KIT_VERIFY=off claude                # bash / zsh
 
 ---
 
-## 6. Ví dụ một task từ đầu đến cuối
+## 12. Ví dụ một task từ đầu đến cuối
 
 Task: *"Thêm áp mã giảm giá ở checkout"*, spec ở `docs/specs/checkout.pdf`. Repo đã chạy `/dev-kit:setup` từ trước.
 
 ```
-1. /dev-kit:check-spec trước docs/specs/checkout.pdf
+1. /dev-kit:check-spec docs/specs/checkout.pdf
    → docs/specs/ap-ma-giam-gia-spec-check.md: 8 yêu cầu, 3 câu hỏi mở
-   → hỏi PM, ghi câu trả lời vào file spec-check
+   → hỏi PM, trả lời trong chat, skill ghi vào file spec-check
 
 2. Còn phải chọn: tính giá giảm ở BE hay FE?
-   /superpowers:brainstorming Yêu cầu đã chốt trong docs/specs/ap-ma-giam-gia-spec-check.md, chỉ bàn phương án
-   → chọn "tính ở BE" → design doc → bạn duyệt
-   (Nếu chỉ có một cách làm hợp lý: bỏ bước này, gọi thẳng /superpowers:writing-plans <spec-check>)
+   /dev-kit:brainstorm docs/specs/ap-ma-giam-gia-spec-check.md
+   → chọn "tính ở BE" → docs/specs/2026-11-27-ap-ma-giam-gia-design.md → bạn duyệt
+   (Nếu chỉ có một cách làm hợp lý: bỏ bước này, gọi thẳng /dev-kit:write-plan <spec-check>)
 
-3. superpowers:writing-plans (brainstorming tự chuyển sang)
-   → docs/superpowers/plans/2026-11-26-ap-ma-giam-gia.md: 5 task
+3. /dev-kit:write-plan docs/specs/2026-11-27-ap-ma-giam-gia-design.md
+   → docs/plans/2026-11-27-ap-ma-giam-gia.md: 5 task, Chế độ test: TDD
 
-4. /superpowers:subagent-driven-development docs/superpowers/plans/2026-11-26-ap-ma-giam-gia.md
-   → từng task: viết test trước → code → review
+4. /dev-kit:execute-plan docs/plans/2026-11-27-ap-ma-giam-gia.md
+   → tạo branch feat/ap-ma-giam-gia, từng task: test fail → code → pass → commit
 
 5. Claude định báo xong → verify-gate chạy
    → lint fail: hàm applyCoupon 72 dòng > 50 → Claude tự tách hàm → chạy lại, pass
 
-6. /dev-kit:check-spec sau docs/specs/checkout.pdf
+6. /dev-kit:recheck-spec docs/specs/ap-ma-giam-gia-spec-check.md
    → 7 ✅ · 1 ⚠️ (text lỗi lệch spec) → sửa → chạy lại → 8 ✅
 
-7. /code-review
-8. /commit-commands:commit-push-pr
+7. /dev-kit:code-review --fix
+8. /dev-kit:create-pr --vi
 ```
 
 Task nhỏ, chỉ có một cách làm: sau bước 1 gõ `Làm task theo <spec-check>, không cần brainstorm, làm luôn`, rồi nhảy tới bước 5.
 
-Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>` thay cho bước 2–4, các bước còn lại giữ nguyên.
+Task UI không cần file test: ở bước 3 thêm `--skip-test`; bước 4 sẽ chạy lint/typecheck/test có sẵn và cuối cùng đưa bạn danh sách kiểm tra tay.
+
+Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>`, xong quay lại bước đang dở.
 
 ---
 
-## 7. Xử lý sự cố
+## 13. Xử lý sự cố
 
 | Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
 |---|---|---|
@@ -342,7 +479,7 @@ Gặp bug trong lúc làm: dùng `/dev-kit:fix-bug <mô tả>` thay cho bước 
 
 ---
 
-## 8. Câu hỏi thường gặp
+## 14. Câu hỏi thường gặp
 
 **Cài dev-kit có làm chậm repo chưa setup không?**
 Không. Ở repo không có `.claude/verify.json`, hook thoát ngay.
@@ -360,4 +497,4 @@ dev-kit chỉ cho phép siết chặt hơn. Với code cũ vi phạm, hãy dùng
 Không trực tiếp. Hãy export ra `.pdf`, `.md` hoặc `.docx` rồi đặt vào repo, hoặc dán nội dung vào lệnh.
 
 **Phát triển dev-kit thì test thế nào?**
-Chạy `npm test` ở thư mục dev-kit (test hook verify-gate và script detect-stack bằng `node:test`, không cần cài dependency). Sau khi sửa, chạy `/plugin marketplace update dev-kit` rồi khởi động lại phiên để dùng bản mới.
+Chạy `npm test` ở thư mục dev-kit (test hook verify-gate, script detect-stack và cấu trúc skill bằng `node:test`, không cần cài dependency). Sau khi sửa, chạy `/plugin marketplace update dev-kit` rồi khởi động lại phiên để dùng bản mới.

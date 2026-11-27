@@ -7,7 +7,7 @@
     {
       "name": "dev-kit",
       "source": "./",
-      "description": "Setup rule cho repo, verify-gate, check-spec, fix-bug.",
+      "description": "Workflow dev trọn bộ: setup, verify-gate, check-spec, brainstorm, plan, execute, recheck-spec, code-review, commit, PR, fix-bug.",
       "category": "development"
     }
   ]
