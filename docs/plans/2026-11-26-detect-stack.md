@@ -1,6 +1,6 @@
 # detect-stack Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Chạy bằng `/dev-kit:execute-plan`. Các bước dùng checkbox (`- [ ]`) để theo dõi.
 
 **Goal:** Script `detect-stack.cjs` khảo sát repo và in JSON dữ kiện (stack, package manager, monorepo, CI, lệnh verify đề xuất kèm nguồn) để `/dev-kit:setup` đọc thay vì Claude tự dò.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node ≥ 18, CommonJS (`.cjs`), chỉ dùng `node:fs`, `node:path`, `node:child_process`; test bằng `node:test` + `node:assert`.
 
-**Spec:** [docs/superpowers/specs/2026-11-26-detect-stack-design.md](../specs/2026-11-26-detect-stack-design.md)
+**Spec:** [docs/specs/2026-11-26-detect-stack-design.md](../specs/2026-11-26-detect-stack-design.md)
 
 ## Global Constraints
 - Không dependency ngoài Node built-in. Node ≥ 18. Chạy được trên Windows/macOS/Linux (dùng `path.join`, chuẩn hoá `\r\n` → `\n`).
